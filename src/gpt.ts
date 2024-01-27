@@ -42,7 +42,8 @@ export class Gpt {
       },
     ];
 
-    await this.firebaseService.saveChatContext(channelId, messages);
+    if (message !== "!reset")
+      await this.firebaseService.saveChatContext(channelId, messages);
 
     return response;
   }
