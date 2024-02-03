@@ -1,20 +1,10 @@
-import {
-  Channel,
-  Client,
-  DMChannel,
-  Events,
-  GatewayIntentBits,
-  Message,
-} from 'discord.js';
+import { Client, Events, GatewayIntentBits } from 'discord.js';
 import {
   Server,
   CustomTransportStrategy,
   BaseRpcContext,
 } from '@nestjs/microservices';
-import {
-  MessageWithChannelName,
-  //RequestMessage,
-} from 'src/domain/types/request-message.type';
+import { MessageWithChannelName } from 'src/domain/types/request-message.type';
 import { ResponseMessage } from 'src/domain/types/response-message.type';
 import { SendMessageMapper } from './discord.mapper';
 import { Inject, Logger } from '@nestjs/common';
