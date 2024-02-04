@@ -24,7 +24,7 @@ export class DiscordTransport
   listen() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const parent = this;
-    console.log('baileys started');
+    console.log('Discord started');
 
     const client = new Client({
       intents: [
@@ -57,20 +57,30 @@ export class DiscordTransport
   }
 
   close() {
-    console.log('baileys closed');
+    console.log('Discord closed');
   }
 
-  private sendMessage(
+  private async sendMessage(
     message: MessageWithChannelName,
     channel: any,
     body: ResponseMessage,
-  ): void {
-    const payload = SendMessageMapper.toSocket(body);
-    if (body.isReply) {
-      message.reply(payload);
-      return;
+  ): Promise<void> {
+    try {
+      const payload = SendMessageMapper.toSocket(body);
+      for (let i = 0; i < payload.length; i += 2000) {
+        const messageChunk = payload.substring(
+          i,
+          Math.min(i + 2000, payload.length),
+        );
+        if (body.isReply) {
+          await message.reply(messageChunk);
+        } else {
+          await channel.send(messageChunk);
+        }
+      }
+    } catch (err) {
+      Logger.error(err);
     }
-    channel.send(payload);
   }
 
   private logMessage(message: MessageWithChannelName): void {

@@ -17,9 +17,19 @@ export class ChatService {
     this.openai = new OpenAIApi({ apiKey });
   }
 
-  async send(message: string, channelId: string): Promise<string> {
+  async send(
+    message: string,
+    channelId: string,
+    BotUser: string,
+  ): Promise<string> {
     try {
-      const chatContext = await this.firebaseService.getChatContext(channelId);
+      let chatContext = await this.firebaseService.getChatContext(channelId);
+      if (!chatContext) {
+        chatContext = await this.firebaseService.resetChatContext(
+          channelId,
+          BotUser,
+        );
+      }
 
       const gptResponse = await this.openai.chat.completions.create({
         messages: [
@@ -50,6 +60,9 @@ export class ChatService {
       return response;
     } catch (err) {
       Logger.error('Error on ChatGPT response');
+      if (err.code === 'context_length_exceeded') {
+        return 'El contexto de la conversación es muy largo, por favor reinicia la conversación con !reset';
+      }
       throw err;
     }
   }

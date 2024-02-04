@@ -12,31 +12,16 @@ export interface IMessage {
 export class FirebaseService {
   private database: Database;
   private chatContext: Reference;
+  private channelsContext: Reference;
 
-  // initializeApp() {
-  //   const adminConfig: ServiceAccount = {
-  //     projectId: firebaseConfigs.projectId,
-  //     privateKey: firebaseConfigs.privateKey.replace(/\\n/g, '\n'),
-  //     clientEmail: firebaseConfigs.clientEmail,
-  //   };
-
-  //   admin.initializeApp({
-  //     credential: admin.credential.cert(adminConfig),
-  //     databaseURL: firebaseConfigs.dataBaseUrl,
-  //   });
-  // }
-
-  // init() {
-  //   this.database = admin.database();
-  //   this.chatContext = this.database.ref('chatContext');
-  // }
   init() {
     this.database = admin.database();
     this.chatContext = this.database.ref('chatContext');
+    this.channelsContext = this.database.ref('channels');
   }
   saveChatContext(channelId: string, messages: IMessage[]): Promise<any> {
     this.init();
-    //push messages to chat context
+
     return messages.reduce(async (prevPromise: any, message: any) => {
       await prevPromise;
       return this.chatContext.child(channelId).push(message);
@@ -55,6 +40,27 @@ export class FirebaseService {
           return Object.values(result);
         }
         return result;
+      });
+  }
+
+  addChannelToChat(channelId: string): Promise<any> {
+    this.init();
+    return this.channelsContext.child(channelId).set(true);
+  }
+
+  removeChannelFromChat(channelId: string): Promise<any> {
+    this.init();
+    return this.channelsContext.child(channelId).remove();
+  }
+
+  getChannelInChat(channelId: string): Promise<boolean> {
+    this.init();
+    return this.channelsContext
+      .child(channelId)
+      .once('value')
+      .then((snapshot) => {
+        const result = snapshot.val();
+        return result ? result : false;
       });
   }
 

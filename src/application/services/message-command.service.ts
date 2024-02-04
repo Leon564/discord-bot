@@ -31,6 +31,15 @@ export class MessageCommandService {
     if (this.testPattern(CommandName.RESET, text)) {
       return this.reset(payload);
     }
+
+    if (this.testPattern(CommandName.GPT, text)) {
+      return this.gpt(payload);
+    }
+
+    if (this.testPattern(CommandName.RGPT, text)) {
+      return this.removeChannelFromChat(payload);
+    }
+
     return this.chat(payload);
   }
 
@@ -46,11 +55,53 @@ export class MessageCommandService {
   private async chat(
     payload: MessageWithChannelName,
   ): Promise<ResponseMessage> {
-    const chat = await this.chatService.send(
-      payload.content,
+    const isInChat = await this.firebaseService.getChannelInChat(
       payload.channelId,
     );
-    return { type: MessageResponseType.text, text: chat, isReply: true };
+    if (isInChat) {
+      const chat = await this.chatService.send(
+        payload.content,
+        payload.channelId,
+        this.BotUser.username,
+      );
+      return { type: MessageResponseType.text, text: chat, isReply: true };
+    }
+  }
+
+  private async gpt(payload: MessageWithChannelName): Promise<ResponseMessage> {
+    try {
+      await this.firebaseService.addChannelToChat(payload.channelId);
+      return {
+        type: MessageResponseType.text,
+        text: 'Chat iniciado',
+        isReply: true,
+      };
+    } catch (err) {
+      return {
+        type: MessageResponseType.text,
+        text: 'Error al iniciar el chat',
+        isReply: true,
+      };
+    }
+  }
+
+  private async removeChannelFromChat(
+    payload: MessageWithChannelName,
+  ): Promise<ResponseMessage> {
+    try {
+      await this.firebaseService.removeChannelFromChat(payload.channelId);
+      return {
+        type: MessageResponseType.text,
+        text: 'Canal elimido de la conversación',
+        isReply: true,
+      };
+    } catch (err) {
+      return {
+        type: MessageResponseType.text,
+        text: 'Error al finalizar el chat',
+        isReply: true,
+      };
+    }
   }
 
   private async reset(
