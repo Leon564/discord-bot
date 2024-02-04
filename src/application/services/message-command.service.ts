@@ -92,7 +92,7 @@ export class MessageCommandService {
       await this.firebaseService.removeChannelFromChat(payload.channelId);
       return {
         type: MessageResponseType.text,
-        text: 'Canal elimido de la conversación',
+        text: 'Canal eliminado de la conversación',
         isReply: true,
       };
     } catch (err) {
